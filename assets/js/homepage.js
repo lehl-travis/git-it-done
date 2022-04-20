@@ -9,6 +9,7 @@ var formSubmitHandler = function(event) {
 
     if (username) {
         getUserRepos(username);
+        repoContainerE1.textContent = "";
         nameInputE1.value = "";
     } else {
         alert("Please enter a GitHub username");
@@ -20,13 +21,22 @@ var formSubmitHandler = function(event) {
 var getUserRepos = function(user) {
     var apiUrl = "https://api.github.com/users/" + user + "/repos";
 
-    fetch(apiUrl).then(function(response) {
-        console.log(response);
-        response.json().then(function(data) {
-            displayRepos(data, user);
+    fetch(apiUrl)
+    .then(function(response) {
+        if (response.ok) {
+            console.log(response);
+            response.json().then(function(data) {
+              console.log(data);
+              displayRepos(data, user);
+            });
+          } else {
+            alert('Error: ' + response.statusText);
+          }
+        })
+        .catch(function(error) {
+          alert('Unable to connect to GitHub');
         });
-    });
-  };
+    };
 
   var displayRepos = function(repos, searchTerm) {
       console.log(repos);
@@ -52,10 +62,27 @@ var getUserRepos = function(user) {
           //append to container
           repoE1.appendChild(titleE1);
 
-          //append container to the dom
-          repoContainerE1.appendChild(repoE1);
-      };
+          // create a status element
+    var statusEl = document.createElement('span');
+    statusEl.classList = 'flex-row align-center';
+
+    // check if current repo has issues or not
+    if (repos[i].open_issues_count > 0) {
+      statusEl.innerHTML =
+        "<i class='fas fa-times status-icon icon-danger'></i>" + repos[i].open_issues_count + ' issue(s)';
+    } else {
+      statusEl.innerHTML = "<i class='fas fa-check-square status-icon icon-success'></i>";
+    }
+
+    // append to container
+    repoE1.appendChild(statusEl);
+
+    //append container to the dom
+    repoContainerE1.appendChild(repoE1);
+      }
   };
+
+  userFormE1.addEventListener("submit", formSubmitHandler);
 
   
   userFormE1.addEventListener("submit", formSubmitHandler);
